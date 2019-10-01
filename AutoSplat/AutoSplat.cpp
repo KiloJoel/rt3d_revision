@@ -100,7 +100,7 @@ int main()
 
 	g_clutBase = _CLUTYPOS(uniqueCLUTs - 1) + 34;
 
-	DrawSegments2Buffer(pSegmentData);
+	DrawSegments2Buffer(pSegmentData, pTIMData);
 	BlitPixels(g_pMapBuffer, BUFX, BUFY, 0, 0, 1024, 1024, 2048);
 
 	// **************************************
@@ -353,7 +353,7 @@ int main()
 		// ***********************************************
 		if (bUpdateSegments == true && theMode == MODE_MAP)
 		{
-			DrawSegments2Buffer(pSegmentData);
+			DrawSegments2Buffer(pSegmentData, pTIMData);
 			BlitPixels(g_pMapBuffer, BUFX, BUFY, xscroll, yscroll, 1024, 1024, 2048);
 
 			DrawRectangle(1300, 3, 260, 20, MakeColor(0, 0, 0), true);
@@ -654,6 +654,16 @@ int CopyTIM2Buffer(int sourcex, int sourcey, int destx, int desty, int rot)
 {
 	// TO DO: Implement this function (see slides)
 
+	//map something onto something, tiles are 32 by 32
+	for (int i = 0; i < 32; i++)
+	{
+		for (int j = 0; j < 32; j++)
+		{
+			Color color = GetPixel(sourcex+i, sourcey+j);//returns a colour
+			SetBufferPixel(destx+i, desty+j, color);//sets pixel on the grid
+		}
+	}
+
 	return 0;
 }
 
@@ -663,11 +673,44 @@ int CopyTIM2Buffer(int sourcex, int sourcey, int destx, int desty, int rot)
 //				pTIMData - pointer to the array of TIM data storing the textures
 // Notes:		Pulls the TIM data from the display buffer as it is already in the correct bit depth
 //				(32-bit) and copying it automatically propogates any colour changes to the map
-int DrawSegments2Buffer(SEGMENT* pSegments)
+int DrawSegments2Buffer(SEGMENT* pSegments, TIM_FILE* pTIMData)
 {
+	//pSegments->strTilePolyStruct
+	//for (int x = 0; x < 16; x++)
+	//{
+	//	for (int y = 0; y < 16; y++)
+	//	{
+	//		SEGMENT segment = pSegments[16 * y + x];
+
+	//		for (int i = 0; i < 16; i++)
+	//		{
+	//			POLYSTRUCT polystruct = segment.strTilePolyStruct[i];
+	//		}
+	//		//loop through polystruct in segment
+	//		
+	//	}
+	//}
+
+
+
 	// TO DO: Implement this function (see slides)
 	// Note the code below should copy the TIM at index "tileIndex" to the map grid square "mapIndex" 
 	// CopyTIM2Buffer(_TIMXPOS(tileIndex), _TIMYPOS(tileIndex), _MAPXPOS(mapIndex), _MAPYPOS(mapIndex), tileRot);
+	for (int x = 0; x < 16; x++)
+	{
+		for (int y = 0; y < 16; y++)
+		{
+			SEGMENT segment = pSegments[16 * y + x];
+			int segmentIndex = 4 * x + 256 * y;
+			for (int i = 0; i < 16; i++)
+			{
+				POLYSTRUCT polystruct = segment.strTilePolyStruct[i];
+				int polyIndex = segmentIndex + i % 4 + i / 4 * 64;
+				CopyTIM2Buffer(_TIMXPOS(polystruct.cTileRef), _TIMYPOS(polystruct.cTileRef), _MAPXPOS(polyIndex), _MAPYPOS(polyIndex), polystruct.cRot);
+			}
+			//loop through polystruct in segment
+		}
+	}
 
 	return 0;
 }
@@ -685,7 +728,7 @@ int SaveDiffusePNG(string &folderPath, SEGMENT* pSegmentData, TIM_FILE* pTIMData
 
 	DrawString(MESSX, MESSY, string("Saving file: ") + fileAndPath, MakeColor(255, 255, 255));
 
-	DrawSegments2Buffer(pSegmentData);
+	DrawSegments2Buffer(pSegmentData, pTIMData);
 
 	int ret = SaveNewBitmap2PNG(g_pMapBuffer, fileAndPath, 2048, 2048);
 
@@ -703,7 +746,7 @@ int SaveDiffusePNG(string &folderPath, SEGMENT* pSegmentData, TIM_FILE* pTIMData
 // Returns:		1 for success
 int SaveChannelPNGs(string &folderPath, SEGMENT* pSegmentData, TIM_FILE* pTIMData )
 {
-	DrawSegments2Buffer(pSegmentData);
+	DrawSegments2Buffer(pSegmentData, pTIMData);
 
 	uint32_t* pChannelBuffer = new uint32_t[2048 * 2048];
 
