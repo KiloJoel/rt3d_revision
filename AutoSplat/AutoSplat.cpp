@@ -655,12 +655,104 @@ int CopyTIM2Buffer(int sourcex, int sourcey, int destx, int desty, int rot)
 	// TO DO: Implement this function (see slides)
 
 	//map something onto something, tiles are 32 by 32
-	for (int i = 0; i < 32; i++)
-	{
-		for (int j = 0; j < 32; j++)
+	//for (int i = 0; i < 32; i++)
+	//{
+	//	for (int j = 0; j < 32; j++)
+	//	{
+	//		Color color = GetPixel(sourcex+i, sourcey+j);//returns a colour
+	//		SetBufferPixel(destx+i, desty+j, color);//sets pixel on the grid
+	//	}
+	//}
+
+	switch (rot) {
+	case 0: //No transformation
+		for (int x = 0; x < 32; x++)
 		{
-			Color color = GetPixel(sourcex+i, sourcey+j);//returns a colour
-			SetBufferPixel(destx+i, desty+j, color);//sets pixel on the grid
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + x, sourcey + y);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 1: //Flip in x
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + 31 - x, sourcey + y);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 2: //Rotate 90
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + y, sourcey + 31 - x);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 3: //Flip in x and rotate 90
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + 31 - y, sourcey + 31 - x);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 4: //Rotate 180
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + 31 - x, sourcey + 31 - y);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 5: //Flip in y
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + x, sourcey + 31 - y);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 6: //Rotate 270
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + 31 - y, sourcey + x);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	case 7: //Rotate 270 and flip in x
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + y, sourcey + x);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
+		}
+		break;
+	default:
+		for (int x = 0; x < 32; x++)
+		{
+			for (int y = 0; y < 32; y++)
+			{
+				Color color = GetPixel(sourcex + x, sourcey + y);//returns a colour
+				SetBufferPixel(destx + x, desty + y, color);//sets pixel on the grid
+			}
 		}
 	}
 
@@ -696,17 +788,20 @@ int DrawSegments2Buffer(SEGMENT* pSegments, TIM_FILE* pTIMData)
 	// TO DO: Implement this function (see slides)
 	// Note the code below should copy the TIM at index "tileIndex" to the map grid square "mapIndex" 
 	// CopyTIM2Buffer(_TIMXPOS(tileIndex), _TIMYPOS(tileIndex), _MAPXPOS(mapIndex), _MAPYPOS(mapIndex), tileRot);
+
+	//Loop through 16x16 grid of segments
 	for (int x = 0; x < 16; x++)
 	{
 		for (int y = 0; y < 16; y++)
 		{
 			SEGMENT segment = pSegments[16 * y + x];
 			int segmentIndex = 4 * x + 256 * y;
+			//Loop through 4x4 segment
 			for (int i = 0; i < 16; i++)
 			{
 				POLYSTRUCT polystruct = segment.strTilePolyStruct[i];
-				int polyIndex = segmentIndex + i % 4 + i / 4 * 64;
-				CopyTIM2Buffer(_TIMXPOS(polystruct.cTileRef), _TIMYPOS(polystruct.cTileRef), _MAPXPOS(polyIndex), _MAPYPOS(polyIndex), polystruct.cRot);
+				int mapIndex = segmentIndex + i % 4 + i / 4 * 64;
+				CopyTIM2Buffer(_TIMXPOS(polystruct.cTileRef), _TIMYPOS(polystruct.cTileRef), _MAPXPOS(mapIndex), _MAPYPOS(mapIndex), polystruct.cRot);
 			}
 			//loop through polystruct in segment
 		}
